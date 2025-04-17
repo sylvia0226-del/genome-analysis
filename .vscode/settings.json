@@ -1,0 +1,9 @@
+{
+  "runOnSave.commands": [
+    {
+      "match": ".*",
+      "command": "${workspaceFolder}/auto-git.sh",
+      "runIn": "backend"
+    }
+  ]
+}
