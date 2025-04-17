@@ -1,0 +1,9 @@
+Sun Apr 13 21:51:01 PDT 2025
+
+  USAGE: nucmer  [options]  <Reference>  <Query>
+    
+Try '/opt/anaconda3/envs/genomics-arm64/bin/MUMmer3.20/nucmer -h' for more information.
+Sun Apr 13 21:51:01 PDT 2025
+CMD:cat /tmp//GCA_000005845 | perl -ne 'if(/^\>([^\s\:]+)\:([^\s\:]+)/){if($1 ne $2){ print ">$1.$2 $1\n";} elsif(defined $1 && defined $2){print ">$1.$2\n";}else {print ">$1\n";}}else{die if(/\>/);print $_}' >> /tmp/tmp.all.fsa
+CMD:cat /tmp//GCA_018460045 | perl -ne 'if(/^\>([^\s\:]+)\:([^\s\:]+)/){if($1 ne $2){ print ">$1.$2 $1\n";} elsif(defined $1 && defined $2){print ">$1.$2\n";}else {print ">$1\n";}}else{die if(/\>/);print $_}' >> /tmp/tmp.all.fsa
+CMD:/opt/anaconda3/envs/genomics-arm64/bin/mugsyWGA --outfile /tmp/tmp --seq /tmp/tmp.all.fsa --aln /tmp/tmp.xmfa --distance 1000 --minlength 30  --unique true  > /tmp/tmp.mugsywga.out 2> /tmp/tmp.mugsywga.stderr

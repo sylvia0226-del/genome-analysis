@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>微生物基因组分析平台</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .section { margin-bottom: 20px; }
+        button { margin: 5px; padding: 8px 16px; }
+        #uploaded-files p { margin: 5px 0; }
+        #analysis-result { white-space: pre-wrap; background: #f6f6f6; padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>微生物基因组分析平台</h1>
+
+    <div class="section">
+        <h2>下载 NCBI 数据</h2>
+        <input type="text" id="accession" placeholder="输入 NCBI 编号（如 GCA_018460045.1）">
+        <button onclick="downloadData()">下载</button>
+    </div>
+
+    <div class="section">
+        <h2>上传 FASTA 文件</h2>
+        <input type="file" id="fasta-files" multiple accept=".fasta,.fna">
+        <button onclick="uploadFiles()">上传</button>
+        <div id="uploaded-files"></div>
+    </div>
+
+    <div class="section">
+        <h2>分析</h2>
+        <button onclick="analyze('virulence')">检测毒力基因</button>
+        <button onclick="analyze('resistance')">检测耐药性基因</button>
+        <button onclick="analyzeAlignment()">全基因组比对（minimap2）</button>
+        <button onclick="analyzeNucmer()">使用 Nucmer 比对</button>
+    </div>
+
+    <div class="section">
+        <h2>结果</h2>
+        <pre id="analysis-result"></pre>
+    </div>
+
+    <script>
+        let allFilePaths = [];
+
+        async function downloadData() {
+            const accession = document.getElementById('accession').value;
+            if (!accession) {
+                alert('请输入 NCBI 编号');
+                return;
+            }
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ accession })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+                const result = await response.json();
+                allFilePaths.push(result.filePath);
+                updateFileList();
+            } catch (error) {
+                alert('下载失败：' + error.message);
+            }
+        }
+
+        async function uploadFiles() {
+            const filesInput = document.getElementById('fasta-files');
+            if (filesInput.files.length === 0) {
+                alert('请选择至少一个文件');
+                return;
+            }
+            const formData = new FormData();
+            for (const file of filesInput.files) {
+                formData.append('files', file);
+            }
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+                const result = await response.json();
+                allFilePaths = allFilePaths.concat(result.filePaths);
+                updateFileList();
+                filesInput.value = '';
+            } catch (error) {
+                alert('上传失败：' + error.message);
+            }
+        }
+
+        function updateFileList() {
+            const uploadedFiles = document.getElementById('uploaded-files');
+            uploadedFiles.innerHTML = allFilePaths.map((path, index) => 
+                `<p><input type="checkbox" class="file-checkbox" data-path="${path}" checked> ${path}</p>`
+            ).join('');
+        }
+
+        function getSelectedFiles() {
+            const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.dataset.path);
+        }
+
+        async function analyze(type) {
+            const selectedFiles = getSelectedFiles();
+            if (selectedFiles.length === 0) {
+                alert('请选择至少一个文件');
+                return;
+            }
+            try {
+                const response = await fetch(`/analyze/${type}?file=${encodeURIComponent(selectedFiles[0])}`, {
+                    method: 'GET'
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+                const result = await response.json();
+                document.getElementById('analysis-result').textContent = result[type];
+            } catch (error) {
+                alert(`分析失败：${error.message}`);
+            }
+        }
+
+        async function analyzeAlignment() {
+            const selectedFiles = getSelectedFiles();
+            if (selectedFiles.length < 2) {
+                alert('全基因组比对需选择两个文件');
+                return;
+            }
+            try {
+                const response = await fetch('/analyze/alignment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: selectedFiles })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`服务器错误: ${response.status} - ${errorText}`);
+                }
+                const result = await response.json();
+                document.getElementById('analysis-result').textContent = result.alignment;
+            } catch (error) {
+                alert(`比对失败：${error.message}`);
+            }
+        }
+
+        async function analyzeNucmer() {
+            const selectedFiles = getSelectedFiles();
+            if (selectedFiles.length < 2) {
+                alert('Nucmer 比对需选择两个文件');
+                return;
+            }
+            try {
+                const response = await fetch('/analyze/nucmer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ files: selectedFiles })
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`服务器错误: ${response.status} - ${errorText}`);
+                }
+                const result = await response.json();
+                document.getElementById('analysis-result').textContent = result.nucmer;
+            } catch (error) {
+                alert(`Nucmer 分析失败：${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+Parsing sequences for GCA_018460045  num_seqs:2
+Parsing sequences for GCA_000005845  num_seqs:1
+2 genomes
+Starting Nucmer: Sun Apr 13 21:51:01 PDT 2025
+.
+Finished Nucmer Sun Apr 13 21:51:01 PDT 2025
+Starting MUGSYWGA: Sun Apr 13 21:51:01 PDT 2025
+system /opt/anaconda3/envs/genomics-arm64/bin/mugsyWGA --outfile /tmp/tmp --seq /tmp/tmp.all.fsa --aln /tmp/tmp.xmfa --distance 1000 --minlength 30  --unique true  > /tmp/tmp.mugsywga.out 2> /tmp/tmp.mugsywga.stderr failed: 32256: at /opt/anaconda3/envs/genomics-arm64/bin/mugsy line 933.

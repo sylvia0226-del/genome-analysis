@@ -1,0 +1,1 @@
+query_id,query_len,query_start,query_end,strand,ref_id,ref_len,ref_start,ref_end,match_len,block_len,mapq
